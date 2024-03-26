@@ -25,7 +25,8 @@ private slots:
     virtual void updateData() = 0;
 private:
     QTimer updateTimer;
-
+protected:
+    QString readFile(QFile &file);
 protected:
     /**
      * @brief error - код ошибки
@@ -45,8 +46,10 @@ public:
 private slots:
     void updateData() override;
 private:
-    int updateCpuName();
-    int updateCpuFreq();
+    void updateCpuInfo();
+    void updateCpuFreq();
+    void updateCpuLoad();
+//    void update
 private:
     double cpuLoad = 0;
     QList<double> coreLoad;
