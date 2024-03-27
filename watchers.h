@@ -38,7 +38,6 @@ protected:
 
 class CpuWatcher : public BasicWatcher
 {
-    Q_OBJECT
 
 public:
     CpuWatcher(QObject *parent = nullptr);
@@ -55,11 +54,49 @@ private:
     QList<double> coreLoad;
     QList<double> coreFreq;
     QDateTime beginTime;
-    int processes = 0;
+    ulong processes = 0;
     QString cpuName;
 
     QFile cpuStat;
     QFile cpuInfo;
+};
+
+class RamWatcher : public BasicWatcher
+{
+public:
+    RamWatcher(QObject *parent = nullptr);
+    ~RamWatcher();
+private slots:
+    void updateData() override;
+private:
+    ulong ramTotal = 0;
+    ulong ramFree = 0;
+    ulong swapTotal = 0;
+    ulong swapFree = 0;
+
+    QFile ramInfo;
+};
+
+class DiscWatcher : public BasicWatcher
+{
+public:
+    DiscWatcher();
+    ~DiscWatcher();
+private slots:
+    void updateData() override;
+private:
+    void updateDiskList();
+private:
+    struct disk{
+        QString name;
+        ulong reads = 0;
+        ulong writes = 0;
+        ulong total = 0;
+        ulong free = 0;
+    };
+
+    QList<disk> diskList;
+    QFile diskInfo;
 };
 
 class WatchersController : public QObject
@@ -74,5 +111,7 @@ private:
     QList <BasicWatcher *> watchers;
 
 };
+
+
 
 #endif // WATCHERS_H

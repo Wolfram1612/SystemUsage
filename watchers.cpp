@@ -1,6 +1,7 @@
 #include "watchers.h"
 
 #include <QRegularExpression>
+#include <QStorageInfo>
 #include <QDebug>
 
 BasicWatcher::BasicWatcher(QObject *parent) : QObject{parent}
@@ -130,6 +131,53 @@ void CpuWatcher::updateCpuLoad()
     }
 }
 
+RamWatcher::RamWatcher(QObject *parent) : BasicWatcher{parent}
+{
+    ramInfo.setFileName("/proc/meminfo");
+    if(!ramInfo.exists()) error = -1;
+}
+
+void RamWatcher::updateData()
+{
+    QString ramString = readFile(ramInfo);
+
+    QRegularExpression totalRE("MemTotal:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch totalM(totalRE.match(ramString));
+    if(totalM.hasMatch()){
+        ramTotal = totalM.captured(1).toInt();
+    }
+    else {
+        error = -2;
+    }
+
+    QRegularExpression freeRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch freeM(freeRE.match(ramString));
+    if(freeM.hasMatch()){
+        ramFree = freeM.captured(1).toInt();
+    }
+    else {
+        error = -2;
+    }
+
+    QRegularExpression swapTotalRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch swapTotalM(swapTotalRE.match(ramString));
+    if(swapTotalM.hasMatch()){
+        swapTotal = swapTotalM.captured(1).toInt();
+    }
+    else {
+        error = -2;
+    }
+
+    QRegularExpression swapFreeRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch swapFreeM(swapFreeRE.match(ramString));
+    if(swapFreeM.hasMatch()){
+        swapFree = swapFreeM.captured(1).toInt();
+    }
+    else {
+        error = -2;
+    }
+}
+
 WatchersController::WatchersController()
 {
     watchers.append(new CpuWatcher(this));
@@ -137,5 +185,35 @@ WatchersController::WatchersController()
 
 WatchersController::~WatchersController()
 {
-    for(auto i:watchers) i->deleteLater();
+    stopWatchers();
+    for(auto i:watchers) {
+        i->deleteLater();
+    }
+}
+
+
+
+DiscWatcher::DiscWatcher()
+{
+    diskInfo.setFileName("/proc/diskstats");
+    if(!diskInfo.exists()) error = -1;
+}
+
+DiscWatcher::~DiscWatcher()
+{
+
+}
+
+void DiscWatcher::updateData()
+{
+
+}
+
+void DiscWatcher::updateDiskList()
+{
+    QList<QStorageInfo> drives = QStorageInfo::mountedVolumes();
+    diskList.clear();
+    diskList.resize(drives.size());
+    QListIterator<disk> it(diskList);
+    for(auto i:drives) it.next().name = i.name()
 }
