@@ -3,6 +3,10 @@
 #include <QRegularExpression>
 #include <QStorageInfo>
 #include <QDebug>
+#include <QString>
+#include <QTextStream>
+
+#include <sys/statfs.h>
 
 BasicWatcher::BasicWatcher(QObject *parent) : QObject{parent}
 {
@@ -34,6 +38,9 @@ CpuWatcher::CpuWatcher(QObject *parent) : BasicWatcher{parent}
 
     cpuInfo.setFileName("/proc/cpuinfo");
     if(!cpuInfo.exists()) error = -1;
+
+    view = new CpuView;
+    name.append("ЦПУ");
     updateCpuInfo();
 }
 
@@ -41,9 +48,6 @@ void CpuWatcher::updateData()
 {
     updateCpuFreq();
     updateCpuLoad();
-//    QString a;
-//    for(auto i:coreFreq) a.append(QString("%1 ").arg(i));
-//    qInfo() << a;
 }
 
 void CpuWatcher::updateCpuInfo()
@@ -58,6 +62,7 @@ void CpuWatcher::updateCpuInfo()
     else {
         error = -2;
     }
+    dynamic_cast<CpuView *>(view)->setCpuName(cpuName);
 
     QRegularExpression coreRE("siblings\\s*:\\s*(.*)");
     QRegularExpressionMatch coreM(coreRE.match(cpuString));
@@ -77,7 +82,11 @@ void CpuWatcher::updateCpuInfo()
     else {
         error = -2;
     }
+    dynamic_cast<CpuView *>(view)->setBeginTime(beginTime.toString());
 
+    // QString a;
+    // a.append(cpuName + ". Cores: " + QString::number(coreFreq.size()) + ". Start time: " + beginTime.toString());
+    // qInfo() << a;
 }
 
 void CpuWatcher::updateCpuFreq()
@@ -91,6 +100,10 @@ void CpuWatcher::updateCpuFreq()
         coreFreq[coreIndex] = n.captured(1).toDouble();
         coreIndex++;
     }
+
+    QString a("Frequenc: ");
+    for(auto i:coreFreq) a.append(QString::number(i) + " ");
+    qInfo() << a;
 }
 
 void CpuWatcher::updateCpuLoad()
@@ -129,6 +142,10 @@ void CpuWatcher::updateCpuLoad()
     else {
         error = -2;
     }
+
+    QString a;
+    a.append("CPU load: " + QString::number(cpuLoad) + ". Cores: ");
+    for(auto i:coreLoad) a.append(QString::number(i) + " ");
 }
 
 RamWatcher::RamWatcher(QObject *parent) : BasicWatcher{parent}
@@ -176,11 +193,19 @@ void RamWatcher::updateData()
     else {
         error = -2;
     }
+
+    QString a;
+    a.append("RAM: " + QString::number(ramFree) + "/" + QString::number(ramTotal) + "\r\n"
+             "SWAP: " + QString::number(swapFree) + "/" + QString::number(swapTotal));
 }
 
 WatchersController::WatchersController()
 {
     watchers.append(new CpuWatcher(this));
+    watchers.append(new RamWatcher(this));
+    watchers.append(new DiscWatcher(this));
+    view.addPage(watchers[0]->getName(), watchers[0]->getView());
+    view.show();
 }
 
 WatchersController::~WatchersController()
@@ -193,27 +218,34 @@ WatchersController::~WatchersController()
 
 
 
-DiscWatcher::DiscWatcher()
+DiscWatcher::DiscWatcher(QObject *parent) : BasicWatcher{parent}
 {
     diskInfo.setFileName("/proc/diskstats");
     if(!diskInfo.exists()) error = -1;
-}
-
-DiscWatcher::~DiscWatcher()
-{
-
+    updateDiskList();
 }
 
 void DiscWatcher::updateData()
 {
-
+    QList<QStorageInfo> drives = QStorageInfo::mountedVolumes();
+    QString diskString(readFile(diskInfo));
+    QString a("Disk load:");
+    for(int i = 0; i < diskList.size(); i++){
+        diskList[i]->free = drives.at(i).bytesFree();
+        a.append(diskList[i]->name + ": " + QString::number(diskList[i]->free) +
+                 "/" + QString::number(diskList[i]->total) + "\r");
+    }
+    qInfo() << a;
 }
 
 void DiscWatcher::updateDiskList()
 {
-    QList<QStorageInfo> drives = QStorageInfo::mountedVolumes();
+    // QList<QStorageInfo> drives = QStorageInfo::mountedVolumes();
     diskList.clear();
-    diskList.resize(drives.size());
-    QListIterator<disk> it(diskList);
-    for(auto i:drives) it.next().name = i.name()
+    // for(int i = 0; i < drives.size(); i++){
+    //     diskList.append(new disk);
+    //     diskList[i]->name = drives.at(i).displayName();
+    //     diskList[i]->total = drives.at(i).bytesTotal();
+    // }
+
 }

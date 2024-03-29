@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QFile>
 
+#include "views.h"
 
 class BasicWatcher : public QObject
 {
@@ -20,13 +21,16 @@ public:
     void setTickRate(int tick) { updateTimer.setInterval(tick); }
     void startWatcher() { updateTimer.start(); };
     void stopWatcher() { updateTimer.stop(); }
-    const int getError() { return error; }
+    int getError() const { return error; }
+    QWidget *getView() const { return view;}
+    QString getName() {return name;}
 private slots:
     virtual void updateData() = 0;
 private:
     QTimer updateTimer;
 protected:
     QString readFile(QFile &file);
+    QString getName() const;
 protected:
     /**
      * @brief error - код ошибки
@@ -34,11 +38,13 @@ protected:
      *        -2 - значение не найдено
      */
     int error = 0;
+    QWidget *view = nullptr;
+    QString name;
 };
 
 class CpuWatcher : public BasicWatcher
 {
-
+    Q_OBJECT
 public:
     CpuWatcher(QObject *parent = nullptr);
 
@@ -63,9 +69,9 @@ private:
 
 class RamWatcher : public BasicWatcher
 {
+    Q_OBJECT
 public:
     RamWatcher(QObject *parent = nullptr);
-    ~RamWatcher();
 private slots:
     void updateData() override;
 private:
@@ -79,9 +85,9 @@ private:
 
 class DiscWatcher : public BasicWatcher
 {
+    Q_OBJECT
 public:
-    DiscWatcher();
-    ~DiscWatcher();
+    DiscWatcher(QObject *parent = nullptr);
 private slots:
     void updateData() override;
 private:
@@ -89,18 +95,19 @@ private:
 private:
     struct disk{
         QString name;
-        ulong reads = 0;
-        ulong writes = 0;
-        ulong total = 0;
-        ulong free = 0;
+        quint64 reads = 0;
+        quint64 writes = 0;
+        quint64 total = 0;
+        quint64 free = 0;
     };
 
-    QList<disk> diskList;
+    QList<disk *> diskList;
     QFile diskInfo;
 };
 
 class WatchersController : public QObject
 {
+    Q_OBJECT
 public:
     WatchersController();
     ~WatchersController();
@@ -109,7 +116,7 @@ public:
     void stopWatchers(){for (auto i:watchers) i->stopWatcher();}
 private:
     QList <BasicWatcher *> watchers;
-
+    ControllerView view;
 };
 
 
