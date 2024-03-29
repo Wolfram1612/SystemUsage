@@ -6,8 +6,6 @@
 #include <QString>
 #include <QTextStream>
 
-#include <sys/statfs.h>
-
 BasicWatcher::BasicWatcher(QObject *parent) : QObject{parent}
 {
     connect(&updateTimer, &QTimer::timeout, this, &BasicWatcher::updateData);

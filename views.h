@@ -6,8 +6,10 @@
 #include <QHBoxLayout>
 #include <QStackedLayout>
 
-#include <QtCharts/QChart>
+#include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
 
 #include <QTabWidget>
 #include <QLabel>
@@ -27,7 +29,8 @@ private:
     QVBoxLayout baseLayout;
     QStackedLayout stack;
     QLabel cpuName;
-    QChart cpuChart;
+    QChartView chartview;
+//    QChart cpuChart;
     QLabel beginTime;
 };
 

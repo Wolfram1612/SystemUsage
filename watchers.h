@@ -23,14 +23,14 @@ public:
     void stopWatcher() { updateTimer.stop(); }
     int getError() const { return error; }
     QWidget *getView() const { return view;}
-    QString getName() {return name;}
+    QString getName() const {return name;}
+
 private slots:
     virtual void updateData() = 0;
 private:
     QTimer updateTimer;
 protected:
     QString readFile(QFile &file);
-    QString getName() const;
 protected:
     /**
      * @brief error - код ошибки

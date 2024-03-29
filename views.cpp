@@ -2,11 +2,18 @@
 
 CpuView::CpuView()
 {
+//    chartview = new QChartView();
     setLayout(&baseLayout);
     baseLayout.addWidget(&cpuName);
-    baseLayout.addLayout(&stack);
+    baseLayout.addWidget(&chartview);
+//    baseLayout.addLayout(&stack);
     baseLayout.addWidget(&beginTime);
     cpuName.setAlignment(Qt::AlignCenter);
+
+
+//    stack.addWidget(*chartview);
+//    chartview.setChart(&cpuChart);
+//    cpuChart
 }
 
 void CpuView::setCpuLoad(double load)
