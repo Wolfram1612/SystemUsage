@@ -37,6 +37,9 @@ CpuWatcher::CpuWatcher(QObject *parent) : BasicWatcher{parent}
     cpuInfo.setFileName("/proc/cpuinfo");
     if(!cpuInfo.exists()) error = -1;
 
+    uptime.setFileName("/proc/uptime");
+    if(!uptime.exists()) error = -1;
+
     view = new CpuView;
     name.append("ЦПУ");
     updateCpuInfo();
@@ -72,15 +75,10 @@ void CpuWatcher::updateCpuInfo()
         error = -2;
     }
 
-    QRegularExpression btimeRE("btime\\s*(.*)");
-    QRegularExpressionMatch btimeM(btimeRE.match(readFile(cpuStat)));
-    if(btimeM.hasMatch()){
-        beginTime.setMSecsSinceEpoch(btimeM.captured(1).toULongLong());
-    }
-    else {
-        error = -2;
-    }
-    dynamic_cast<CpuView *>(view)->setBeginTime(beginTime.toString());
+    QStringList ut(readFile(uptime).split(' '));
+    beginTime.setSecsSinceEpoch(QDateTime::currentDateTime().currentSecsSinceEpoch() - ut.at(0).toDouble());
+
+    dynamic_cast<CpuView *>(view)->setBeginTime(beginTime);
 
     // QString a;
     // a.append(cpuName + ". Cores: " + QString::number(coreFreq.size()) + ". Start time: " + beginTime.toString());

@@ -65,6 +65,7 @@ private:
 
     QFile cpuStat;
     QFile cpuInfo;
+    QFile uptime;
 };
 
 class RamWatcher : public BasicWatcher
