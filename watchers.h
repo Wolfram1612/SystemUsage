@@ -54,10 +54,10 @@ private:
     void updateCpuInfo();
     void updateCpuFreq();
     void updateCpuLoad();
-//    void update
 private:
-    double cpuLoad = 0;
-    QList<double> coreLoad;
+    QList<QList<double>> cpuLoadRaw;
+    QList<QList<double>> prevCpuLoadRaw;
+    QList<double> cpuLoad;
     QList<double> coreFreq;
     QDateTime beginTime;
     ulong processes = 0;

@@ -49,6 +49,10 @@ void CpuWatcher::updateData()
 {
     updateCpuFreq();
     updateCpuLoad();
+    double av = 0;
+    for(auto i:cpuLoad) av += i;
+    av /= cpuLoad.size();
+    dynamic_cast<CpuView *>(view)->setCpuLoad(av);
 }
 
 void CpuWatcher::updateCpuInfo()
@@ -68,8 +72,13 @@ void CpuWatcher::updateCpuInfo()
     QRegularExpression coreRE("siblings\\s*:\\s*(.*)");
     QRegularExpressionMatch coreM(coreRE.match(cpuString));
     if(coreM.hasMatch()){
-        coreFreq.resize(coreM.captured(1).toInt());
-        coreLoad.resize(coreM.captured(1).toInt());
+        const int coreCount = coreM.captured(1).toInt();
+        coreFreq.resize(coreCount);
+        cpuLoadRaw.resize(coreCount);
+        prevCpuLoadRaw.resize(coreCount);
+        cpuLoad.resize(coreCount);
+        for(auto &i:cpuLoadRaw) i.resize(10);
+        for(auto &i:prevCpuLoadRaw) i.resize(10);
     }
     else {
         error = -2;
@@ -79,10 +88,6 @@ void CpuWatcher::updateCpuInfo()
     beginTime.setSecsSinceEpoch(QDateTime::currentDateTime().currentSecsSinceEpoch() - ut.at(0).toDouble());
 
     dynamic_cast<CpuView *>(view)->setBeginTime(beginTime);
-
-    // QString a;
-    // a.append(cpuName + ". Cores: " + QString::number(coreFreq.size()) + ". Start time: " + beginTime.toString());
-    // qInfo() << a;
 }
 
 void CpuWatcher::updateCpuFreq()
@@ -96,26 +101,16 @@ void CpuWatcher::updateCpuFreq()
         coreFreq[coreIndex] = n.captured(1).toDouble();
         coreIndex++;
     }
-
-    QString a("Frequenc: ");
-    for(auto i:coreFreq) a.append(QString::number(i) + " ");
-    qInfo() << a;
 }
 
 void CpuWatcher::updateCpuLoad()
 {
     QString cpuData(readFile(cpuStat));
 
-    QRegularExpression cpuRE("cpu\\s*(.*)", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpressionMatch cpuM(cpuRE.match(cpuData));
-    if(cpuM.hasMatch()){
-        QVector<int> cpuValues;
-        for(auto i:cpuM.captured(1).split(" ")) cpuValues.append(i.toInt());
-        int total = cpuValues.at(1) + cpuValues.at(2) + cpuValues.at(3) + cpuValues.at(4);
-        cpuLoad = 100.0 * (total - cpuValues.at(4)) / total;
-    }
-    else {
-        error = -2;
+    for(int i = 0; i < cpuLoadRaw.size(); i++){
+        for(int j = 0; j < cpuLoadRaw[i].size(); j++){
+            prevCpuLoadRaw[i][j] = cpuLoadRaw[i][j];
+        }
     }
 
     QRegularExpression coreRE("cpu\\d+\\s*(.*)", QRegularExpression::CaseInsensitiveOption);
@@ -123,25 +118,37 @@ void CpuWatcher::updateCpuLoad()
     int coreIndex = 0;
     while(coreM.hasNext()){
         QRegularExpressionMatch n = coreM.next();
-        QVector<int> coreValues;
-        for(auto i:n.captured(1).split(" ")) coreValues.append(i.toInt());
-        int total = coreValues.at(1) + coreValues.at(2) + coreValues.at(3) + coreValues.at(4);
-        coreLoad[coreIndex] = 100.0 * (total - coreValues.at(4)) / total;
+        int index = 0;
+        for(auto i:n.captured(1).split(" ")) {
+            cpuLoadRaw[coreIndex][index] = i.toInt();
+            index++;
+        }
         coreIndex++;
     }
 
     QRegularExpression processesRE("processes\\s*(.*)", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch processesM(processesRE.match(cpuData));
-    if(cpuM.hasMatch()){
-        processes = cpuM.captured(1).toInt();
+    if(processesM.hasMatch()){
+        processes = processesM.captured(1).toInt();
     }
     else {
         error = -2;
     }
 
-    QString a;
-    a.append("CPU load: " + QString::number(cpuLoad) + ". Cores: ");
-    for(auto i:coreLoad) a.append(QString::number(i) + " ");
+    for(int i = 0; i < cpuLoad.size(); i++){
+        int idle = cpuLoadRaw[i][3] + cpuLoadRaw[i][4];
+        int pIdle = prevCpuLoadRaw[i][3] + prevCpuLoadRaw[i][4];
+
+        int noIdle = cpuLoadRaw[i][0] + cpuLoadRaw[i][1] + cpuLoadRaw[i][2] + cpuLoadRaw[i][5] + cpuLoadRaw[i][6] + cpuLoadRaw[i][7] + cpuLoadRaw[i][8] + cpuLoadRaw[i][9];
+        int pNoIdle = prevCpuLoadRaw[i][0] + prevCpuLoadRaw[i][1] + prevCpuLoadRaw[i][2] + prevCpuLoadRaw[i][5] + prevCpuLoadRaw[i][6] + prevCpuLoadRaw[i][7] + prevCpuLoadRaw[i][8] + prevCpuLoadRaw[i][9];
+
+        int total = idle + noIdle;
+        int pTotal = pIdle + pNoIdle;
+
+        double totald = total - pTotal;
+        double idled = idle - pIdle;
+        cpuLoad[i] = (totald-idled)/totald*100;
+    }
 }
 
 RamWatcher::RamWatcher(QObject *parent) : BasicWatcher{parent}

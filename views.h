@@ -6,14 +6,13 @@
 #include <QHBoxLayout>
 #include <QStackedLayout>
 
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QtCharts/QChart>
-#include <QtCharts/QChartView>
+#include <QChartView>
 
 #include <QTabWidget>
 #include <QLabel>
 #include <QDateTime>
+
+#include "chart.h"
 
 class CpuView : public QWidget
 {
@@ -34,7 +33,7 @@ private:
     QStackedLayout stack;
     QLabel cpuName;
     QChartView chartview;
-    QChart cpuChart;
+    Chart cpuChart;
     // QCharAxi
     QLabel beginLabel;
 };
