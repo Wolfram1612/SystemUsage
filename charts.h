@@ -1,16 +1,16 @@
-#ifndef CHART_H
-#define CHART_H
+#ifndef CHARTS_H
+#define CHARTS_H
 
 #include <QChart>
 #include <QValueAxis>
 #include <QSplineSeries>
 #include <QAbstractAxis>
 
-class Chart : public QChart
+class CpuChart : public QChart
 {
     Q_OBJECT
 public:
-    Chart(QGraphicsItem *parent = nullptr, Qt::WindowFlags wFlags = {});
+    CpuChart(QGraphicsItem *parent = nullptr, Qt::WindowFlags wFlags = {});
     void appendValue(qreal val);
 private:
     QSplineSeries *series;
@@ -19,4 +19,4 @@ private:
     qreal x = 0;
 };
 
-#endif // CHART_H
+#endif // CHARTS_H

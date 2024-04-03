@@ -1,6 +1,6 @@
-#include "chart.h"
+#include "charts.h"
 
-Chart::Chart(QGraphicsItem *parent, Qt::WindowFlags wFlags):
+CpuChart::CpuChart(QGraphicsItem *parent, Qt::WindowFlags wFlags):
     QChart(QChart::ChartTypeCartesian, parent, wFlags),
     axisX(new QValueAxis()),
     axisY(new QValueAxis())
@@ -19,7 +19,7 @@ Chart::Chart(QGraphicsItem *parent, Qt::WindowFlags wFlags):
     axisY->setMax(100);
 }
 
-void Chart::appendValue(qreal val)
+void CpuChart::appendValue(qreal val)
 {
     QPointF p(x, val);
     series->append(p);

@@ -8,11 +8,9 @@ CpuView::CpuView()
     baseLayout.addLayout(&stack);
     baseLayout.addWidget(&beginLabel);
     cpuName.setAlignment(Qt::AlignCenter);
-
-
-   stack.addWidget(&chartview);
-   chartview.setChart(&cpuChart);
-
+    stack.addWidget(&chartview);
+    chartview.setChart(&cpuChart);
+    chartview.setRenderHint(QPainter::Antialiasing);
 }
 
 void CpuView::setCpuLoad(double load)

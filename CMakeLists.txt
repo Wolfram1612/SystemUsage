@@ -15,7 +15,7 @@ add_executable(SystemUsage
     main
     watchers.h watchers.cpp
     views.h views.cpp
-    chart.h chart.cpp
+    charts.h charts.cpp
 )
 
 include(GNUInstallDirs)

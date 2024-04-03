@@ -155,6 +155,7 @@ RamWatcher::RamWatcher(QObject *parent) : BasicWatcher{parent}
 {
     ramInfo.setFileName("/proc/meminfo");
     if(!ramInfo.exists()) error = -1;
+    name.append("ОЗУ");
 }
 
 void RamWatcher::updateData()
@@ -179,7 +180,7 @@ void RamWatcher::updateData()
         error = -2;
     }
 
-    QRegularExpression swapTotalRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression swapTotalRE("SwapTotal:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch swapTotalM(swapTotalRE.match(ramString));
     if(swapTotalM.hasMatch()){
         swapTotal = swapTotalM.captured(1).toInt();
@@ -188,7 +189,7 @@ void RamWatcher::updateData()
         error = -2;
     }
 
-    QRegularExpression swapFreeRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression swapFreeRE("SwapFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch swapFreeM(swapFreeRE.match(ramString));
     if(swapFreeM.hasMatch()){
         swapFree = swapFreeM.captured(1).toInt();

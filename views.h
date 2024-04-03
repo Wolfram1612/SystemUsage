@@ -12,7 +12,7 @@
 #include <QLabel>
 #include <QDateTime>
 
-#include "chart.h"
+#include "charts.h"
 
 class CpuView : public QWidget
 {
@@ -33,7 +33,7 @@ private:
     QStackedLayout stack;
     QLabel cpuName;
     QChartView chartview;
-    Chart cpuChart;
+    CpuChart cpuChart;
     // QCharAxi
     QLabel beginLabel;
 };
@@ -46,6 +46,14 @@ public:
 private:
     QHBoxLayout layout;
     QTabWidget tab;
+};
+
+class RamView : public QWidget
+{
+public:
+    RamView();
+private:
+    QVBoxLayout layout;
 };
 
 #endif // VIEWS_H
