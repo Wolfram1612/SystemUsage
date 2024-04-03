@@ -5,24 +5,29 @@ CpuChart::CpuChart(QGraphicsItem *parent, Qt::WindowFlags wFlags):
     axisX(new QValueAxis()),
     axisY(new QValueAxis())
 {
-    series = new QSplineSeries(this);
+    // series = new QSplineSeries(this);
     QPen p(Qt::black);
-    series->setPen(p);
-    addSeries(series);
+    // series->setPen(p);
+    // addSeries(series);
     addAxis(axisX,Qt::AlignBottom);
     addAxis(axisY,Qt::AlignLeft);
-    series->attachAxis(axisX);
-    series->attachAxis(axisY);
+    // series->attachAxis(axisX);
+    // series->attachAxis(axisY);
     axisX->setRange(0, 100);
     axisX->setTickCount(10);
     axisX->setVisible(false);
     axisY->setMax(100);
 }
 
+void CpuChart::appendValues(QList<double> values)
+{
+    if(values.size() != coreSeries.size()) coreSeries.resize(values.size());
+}
+
 void CpuChart::appendValue(qreal val)
 {
     QPointF p(x, val);
-    series->append(p);
+    // series->append(p);
     x++;
     if(x > axisX->max()) scroll(plotArea().width() / (axisX->max() - axisX->min()), 0);
 }

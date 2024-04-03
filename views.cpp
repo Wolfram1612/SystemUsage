@@ -76,3 +76,8 @@ void ControllerView::addPage(QString name, QWidget *page)
 {
     tab.addTab(page, name);
 }
+
+RamView::RamView()
+{
+    setLayout(&layout);
+}
