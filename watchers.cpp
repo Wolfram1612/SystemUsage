@@ -6,6 +6,7 @@
 #include <QString>
 #include <QTextStream>
 
+#include <sys/statvfs.h>
 BasicWatcher::BasicWatcher(QObject *parent) : QObject{parent}
 {
     connect(&updateTimer, &QTimer::timeout, this, &BasicWatcher::updateData);
@@ -52,7 +53,7 @@ void CpuWatcher::updateData()
     double av = 0;
     for(auto i:cpuLoad) av += i;
     av /= cpuLoad.size();
-    dynamic_cast<CpuView *>(view)->setCpuLoad(av);
+    dynamic_cast<CpuView *>(view)->setCpuLoad(cpuLoad);
 }
 
 void CpuWatcher::updateCpuInfo()
@@ -156,6 +157,7 @@ RamWatcher::RamWatcher(QObject *parent) : BasicWatcher{parent}
     ramInfo.setFileName("/proc/meminfo");
     if(!ramInfo.exists()) error = -1;
     name.append("ОЗУ");
+    view = new RamView;
 }
 
 void RamWatcher::updateData()
@@ -171,7 +173,7 @@ void RamWatcher::updateData()
         error = -2;
     }
 
-    QRegularExpression freeRE("MemFree:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression freeRE("MemAvailable:\\s*(\\d+)\\s*", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch freeM(freeRE.match(ramString));
     if(freeM.hasMatch()){
         ramFree = freeM.captured(1).toInt();
@@ -197,10 +199,10 @@ void RamWatcher::updateData()
     else {
         error = -2;
     }
-
-    QString a;
-    a.append("RAM: " + QString::number(ramFree) + "/" + QString::number(ramTotal) + "\r\n"
-             "SWAP: " + QString::number(swapFree) + "/" + QString::number(swapTotal));
+    dynamic_cast<RamView *>(view)->setMem(ramTotal, ramFree, swapTotal, swapFree);
+    // QString a;
+    // a.append("RAM: " + QString::number(ramFree) + "/" + QString::number(ramTotal) + "\r\n"
+    //          "SWAP: " + QString::number(swapFree) + "/" + QString::number(swapTotal));
 }
 
 WatchersController::WatchersController()
@@ -208,7 +210,8 @@ WatchersController::WatchersController()
     watchers.append(new CpuWatcher(this));
     watchers.append(new RamWatcher(this));
     watchers.append(new DiscWatcher(this));
-    view.addPage(watchers[0]->getName(), watchers[0]->getView());
+    // view.addPage(watchers[0]->getName(), watchers[0]->getView());
+    for(auto i:watchers) view.addPage(i->getName(), i->getView());
     view.show();
 }
 
@@ -239,7 +242,13 @@ void DiscWatcher::updateData()
         a.append(diskList[i]->name + ": " + QString::number(diskList[i]->free) +
                  "/" + QString::number(diskList[i]->total) + "\r");
     }
-    qInfo() << a;
+    // QString st("/sda1/");
+    // struct statvfs fs;
+    // char pat[7] = "/sda1/";
+    // statvfs(pat, &fs);
+    // qInfo() << fs.f_bsize;
+    QStorageInfo si("/");
+    qDebug() << si.bytesAvailable() << si.bytesTotal();
 }
 
 void DiscWatcher::updateDiskList()
@@ -251,5 +260,31 @@ void DiscWatcher::updateDiskList()
     //     diskList[i]->name = drives.at(i).displayName();
     //     diskList[i]->total = drives.at(i).bytesTotal();
     // }
+
+}
+
+NetWatcher::NetWatcher(QObject *parent) : BasicWatcher{parent}
+{
+    netInfo.setFileName("/proc/net/dev");
+    if(!netInfo.exists()) error = -1;
+}
+
+void NetWatcher::updateData()
+{
+    QString netString = readFile(netInfo);
+
+    QRegularExpression netRE("\\w+:\\s*(\\d+)*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatchIterator netM(netRE.globalMatch(netString));
+    quint64 rtmp = 0;
+    quint64 ttmp = 0;
+
+    while(netM.hasNext()){
+        QRegularExpressionMatch n = netM.next();
+        rtmp += n.captured(1).toULongLong();
+        ttmp += n.captured(9).toULongLong();
+    }
+
+    rps = (rtmp - recieve) / updateTimer.interval();
+    tps = (ttmp - transmite) / updateTimer.interval();
 
 }

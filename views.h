@@ -18,7 +18,7 @@ class CpuView : public QWidget
 {
 public:
     CpuView();
-    void setCpuLoad(double load);
+    void setCpuLoad(QList<double> load);
     void setCpuName(QString name);
     void setBeginTime(QDateTime bt);
 
@@ -30,12 +30,23 @@ private:
 private:
     QDateTime begintime;
     QVBoxLayout baseLayout;
-    QStackedLayout stack;
+    // QStackedLayout stack;
     QLabel cpuName;
     QChartView chartview;
     CpuChart cpuChart;
     // QCharAxi
     QLabel beginLabel;
+};
+
+class RamView : public QWidget
+{
+public:
+    RamView();
+    void setMem(int memT, int memF, int swapT, int swapF);
+private:
+    QVBoxLayout baseLayout;
+    QChartView chartView;
+    RamChart chart;
 };
 
 class ControllerView : public QWidget
@@ -46,14 +57,6 @@ public:
 private:
     QHBoxLayout layout;
     QTabWidget tab;
-};
-
-class RamView : public QWidget
-{
-public:
-    RamView();
-private:
-    QVBoxLayout layout;
 };
 
 #endif // VIEWS_H

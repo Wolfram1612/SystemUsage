@@ -4,18 +4,22 @@ CpuView::CpuView()
 {
     setLayout(&baseLayout);
     baseLayout.addWidget(&cpuName);
-    // baseLayout.addWidget(&chartview);
-    baseLayout.addLayout(&stack);
+    baseLayout.addWidget(&chartview);
+    // baseLayout.addLayout(&stack);
     baseLayout.addWidget(&beginLabel);
     cpuName.setAlignment(Qt::AlignCenter);
-    stack.addWidget(&chartview);
+    // stack.addWidget(&chartview);
     chartview.setChart(&cpuChart);
     chartview.setRenderHint(QPainter::Antialiasing);
 }
 
-void CpuView::setCpuLoad(double load)
+void CpuView::setCpuLoad(QList<double> load)
 {
-    cpuChart.appendValue(load);
+    for(int i = 0; i < load.size(); i++){
+        load[i] /=  load.size();
+        if(i > 0) load[i] += load[i - 1];
+    }
+    cpuChart.appendValues(load);
     updateBegintime();
 }
 
@@ -79,5 +83,13 @@ void ControllerView::addPage(QString name, QWidget *page)
 
 RamView::RamView()
 {
-    setLayout(&layout);
+    setLayout(&baseLayout);
+    baseLayout.addWidget(&chartView);
+    chartView.setChart(&chart);
+    chartView.setRenderHint(QPainter::Antialiasing);
+}
+
+void RamView::setMem(int memT, int memF, int swapT, int swapF)
+{
+    chart.appendValues(memT, memF, swapT, swapF);
 }

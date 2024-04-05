@@ -27,8 +27,6 @@ public:
 
 private slots:
     virtual void updateData() = 0;
-private:
-    QTimer updateTimer;
 protected:
     QString readFile(QFile &file);
 protected:
@@ -40,6 +38,7 @@ protected:
     int error = 0;
     QWidget *view = nullptr;
     QString name;
+    QTimer updateTimer;
 };
 
 class CpuWatcher : public BasicWatcher
@@ -104,6 +103,20 @@ private:
 
     QList<disk *> diskList;
     QFile diskInfo;
+};
+
+class NetWatcher : public BasicWatcher
+{
+public:
+    NetWatcher(QObject *parent = nullptr);
+private slots:
+    void updateData() override;
+private:
+    quint64 recieve = 0;
+    quint64 rps = 0;
+    quint64 transmite = 0;
+    quint64 tps = 0;
+    QFile netInfo;
 };
 
 class WatchersController : public QObject
