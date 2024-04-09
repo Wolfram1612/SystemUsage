@@ -36,6 +36,7 @@ protected:
      *        -2 - значение не найдено
      */
     int error = 0;
+
     QWidget *view = nullptr;
     QString name;
     QTimer updateTimer;
@@ -107,6 +108,7 @@ private:
 
 class NetWatcher : public BasicWatcher
 {
+    Q_OBJECT
 public:
     NetWatcher(QObject *parent = nullptr);
 private slots:

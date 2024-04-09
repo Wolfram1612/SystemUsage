@@ -200,17 +200,14 @@ void RamWatcher::updateData()
         error = -2;
     }
     dynamic_cast<RamView *>(view)->setMem(ramTotal, ramFree, swapTotal, swapFree);
-    // QString a;
-    // a.append("RAM: " + QString::number(ramFree) + "/" + QString::number(ramTotal) + "\r\n"
-    //          "SWAP: " + QString::number(swapFree) + "/" + QString::number(swapTotal));
 }
 
 WatchersController::WatchersController()
 {
     watchers.append(new CpuWatcher(this));
     watchers.append(new RamWatcher(this));
-    watchers.append(new DiscWatcher(this));
-    // view.addPage(watchers[0]->getName(), watchers[0]->getView());
+    // watchers.append(new DiscWatcher(this));
+    watchers.append(new NetWatcher(this));
     for(auto i:watchers) view.addPage(i->getName(), i->getView());
     view.show();
 }
@@ -247,8 +244,8 @@ void DiscWatcher::updateData()
     // char pat[7] = "/sda1/";
     // statvfs(pat, &fs);
     // qInfo() << fs.f_bsize;
-    QStorageInfo si("/");
-    qDebug() << si.bytesAvailable() << si.bytesTotal();
+    // QStorageInfo si("/");
+    // qDebug() << si.bytesAvailable() << si.bytesTotal();
 }
 
 void DiscWatcher::updateDiskList()
@@ -267,13 +264,15 @@ NetWatcher::NetWatcher(QObject *parent) : BasicWatcher{parent}
 {
     netInfo.setFileName("/proc/net/dev");
     if(!netInfo.exists()) error = -1;
+    view = new NetView;
+    name.append("Сеть");
 }
 
 void NetWatcher::updateData()
 {
     QString netString = readFile(netInfo);
 
-    QRegularExpression netRE("\\w+:\\s*(\\d+)*", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression netRE("\\w+:\\s*(\\d+)\\s*\\d+\\s*\\d+\\s*\\d+\\s*\\d+\\s*\\d+\\s*\\d+\\s*\\d+\\s*(\\d+)", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatchIterator netM(netRE.globalMatch(netString));
     quint64 rtmp = 0;
     quint64 ttmp = 0;
@@ -281,10 +280,13 @@ void NetWatcher::updateData()
     while(netM.hasNext()){
         QRegularExpressionMatch n = netM.next();
         rtmp += n.captured(1).toULongLong();
-        ttmp += n.captured(9).toULongLong();
+        ttmp += n.captured(2).toULongLong();
     }
 
     rps = (rtmp - recieve) / updateTimer.interval();
     tps = (ttmp - transmite) / updateTimer.interval();
+    if(recieve > 0) dynamic_cast<NetView *>(view)->setNetSpeed(rps, tps);
+    recieve = rtmp;
+    transmite = ttmp;
 
 }

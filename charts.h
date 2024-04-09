@@ -37,4 +37,17 @@ private:
     qreal x = 0;
 };
 
+class NetChart : public QChart
+{
+public:
+    NetChart(QGraphicsItem *parent = nullptr, Qt::WindowFlags wFlags = {});
+    void setNetSpeed(int resieve, int transmite);
+private:
+    QValueAxis *axisX;
+    QValueAxis *axisY;
+    QSplineSeries *rSeries = nullptr;
+    QSplineSeries *tSeries = nullptr;
+    qreal x = 0;
+};
+
 #endif // CHARTS_H

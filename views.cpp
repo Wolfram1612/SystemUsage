@@ -2,15 +2,10 @@
 
 CpuView::CpuView()
 {
-    setLayout(&baseLayout);
-    baseLayout.addWidget(&cpuName);
-    baseLayout.addWidget(&chartview);
-    // baseLayout.addLayout(&stack);
+    baseLayout.insertWidget(0, &cpuName);
     baseLayout.addWidget(&beginLabel);
     cpuName.setAlignment(Qt::AlignCenter);
-    // stack.addWidget(&chartview);
-    chartview.setChart(&cpuChart);
-    chartview.setRenderHint(QPainter::Antialiasing);
+    view.setChart(&cpuChart);
 }
 
 void CpuView::setCpuLoad(QList<double> load)
@@ -30,7 +25,6 @@ void CpuView::setCpuName(QString name)
 
 void CpuView::setBeginTime(QDateTime bt)
 {
-    // beginTime.setText("Включено:" + bt);
     begintime = bt;
     updateBegintime();
 }
@@ -83,13 +77,27 @@ void ControllerView::addPage(QString name, QWidget *page)
 
 RamView::RamView()
 {
-    setLayout(&baseLayout);
-    baseLayout.addWidget(&chartView);
-    chartView.setChart(&chart);
-    chartView.setRenderHint(QPainter::Antialiasing);
+    view.setChart(&chart);
 }
 
 void RamView::setMem(int memT, int memF, int swapT, int swapF)
 {
     chart.appendValues(memT, memF, swapT, swapF);
+}
+
+NetView::NetView()
+{
+    view.setChart(&chart);
+}
+
+void NetView::setNetSpeed(int rc, int tm)
+{
+    chart.setNetSpeed(rc, tm);
+}
+
+BaseView::BaseView()
+{
+    setLayout(&baseLayout);
+    baseLayout.addWidget(&view);
+    view.setRenderHint(QPainter::Antialiasing);
 }

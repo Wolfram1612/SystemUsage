@@ -1,4 +1,5 @@
 #include "charts.h"
+#include <cmath>
 
 CpuChart::CpuChart(QGraphicsItem *parent, Qt::WindowFlags wFlags):
     QChart(QChart::ChartTypeCartesian, parent, wFlags),
@@ -43,9 +44,6 @@ void CpuChart::resetSeries()
         coreAreas[i]->setUpperSeries(coreSeries[i]);
         if(i > 0) coreAreas[i]->setLowerSeries(coreSeries[i - 1]);
         QColor c;
-        // c.setRgbF(((double)1 - (double)1 / (double)coreSeries.size()) * (double)i,
-        //           (double)1 - ((double)1 / (double)coreSeries.size()) * (double)i,
-        //           (double)1 - ((double)1 / (double)coreSeries.size()) * (double)i);
         int dr = (255 / coreSeries.size());
         int r = (dr + dr * i * 230) % 255;
         int g = (dr + dr * i * 60) % 255;
@@ -97,4 +95,41 @@ void RamChart::appendValues(int memT, int memF, int swapT, int swapF)
     x++;
     if(x > axisX->max()) scroll(plotArea().width() / (axisX->max() - axisX->min()), 0);
 
+}
+
+NetChart::NetChart(QGraphicsItem *parent, Qt::WindowFlags wFlags) :
+    QChart(QChart::ChartTypeCartesian, parent, wFlags),
+    axisX(new QValueAxis()),
+    axisY(new QValueAxis())
+{
+    addAxis(axisX,Qt::AlignBottom);
+    addAxis(axisY,Qt::AlignLeft);
+    axisX->setRange(0, 100);
+    axisX->setTickCount(10);
+    axisX->setVisible(false);
+    axisY->setTitleText("Кбит/с");
+
+    rSeries = new QSplineSeries(this);
+    addSeries(rSeries);
+    rSeries->attachAxis(axisX);
+    rSeries->attachAxis(axisY);
+    rSeries->setName("Down");
+    tSeries = new QSplineSeries(this);
+    addSeries(tSeries);
+    tSeries->attachAxis(axisX);
+    tSeries->attachAxis(axisY);
+    tSeries->setName("Up");
+
+}
+
+void NetChart::setNetSpeed(int resieve, int transmite)
+{
+    resieve *= 8;
+    transmite *= 8;
+    if(axisY->max() < resieve) axisY->setMax(std::ceil((float)resieve/1000) * 1000);
+    rSeries->append(x, resieve);
+    if(axisY->max() < transmite) axisY->setMax(std::ceil((float)transmite/1000) * 1000);
+    tSeries->append(x, transmite);
+    x++;
+    if(x > axisX->max()) scroll(plotArea().width() / (axisX->max() - axisX->min()), 0);
 }

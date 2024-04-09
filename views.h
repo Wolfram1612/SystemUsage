@@ -14,7 +14,17 @@
 
 #include "charts.h"
 
-class CpuView : public QWidget
+class BaseView : public QWidget
+{
+public:
+    BaseView();
+
+protected:
+    QVBoxLayout baseLayout;
+    QChartView view;
+};
+
+class CpuView : public BaseView
 {
 public:
     CpuView();
@@ -29,23 +39,17 @@ private:
     void updateBegintime();
 private:
     QDateTime begintime;
-    QVBoxLayout baseLayout;
-    // QStackedLayout stack;
     QLabel cpuName;
-    QChartView chartview;
     CpuChart cpuChart;
-    // QCharAxi
     QLabel beginLabel;
 };
 
-class RamView : public QWidget
+class RamView : public BaseView
 {
 public:
     RamView();
     void setMem(int memT, int memF, int swapT, int swapF);
 private:
-    QVBoxLayout baseLayout;
-    QChartView chartView;
     RamChart chart;
 };
 
@@ -57,6 +61,16 @@ public:
 private:
     QHBoxLayout layout;
     QTabWidget tab;
+
+};
+
+class NetView : public BaseView
+{
+public:
+    NetView();
+    void setNetSpeed(int rc, int tm);
+private:
+    NetChart chart;
 };
 
 #endif // VIEWS_H
